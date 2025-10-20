@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import MainMenu from './MainMenu';
+import MainMenu from './login/MainMenu.js';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
