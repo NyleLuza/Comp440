@@ -85,15 +85,21 @@ def login(data: login_form):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT * FROM users WHERE username=%s AND password=%s",
-                (data.username, data.password)
+                "SELECT password FROM users WHERE username=%s",
+                (data.username,)
             )
             user = cur.fetchone()
 
+        # no user was found
         if not user:
             return {"message": "Username or password is incorrect!"}
-
-        return {"message": "Login successful!"}
+        
+        # if user found, we want to check the password hash
+        pw_hash = user['password']
+        if bcrypt.checkpw(data.password.encode("utf-8"), pw_hash.encode("utf-8")):
+            return {"message": "Login successful!"}
+        else:
+            return {"message": "Login unsuccessful, wrong password!"}
     finally:
         conn.close()
 
