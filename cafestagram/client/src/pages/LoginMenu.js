@@ -1,13 +1,13 @@
-import SignUpFields from "./SignUpFields.js";
-function MainMenu() {
+import LoginFields from "../components/LoginFields.js";
+function LoginMenu() {
   return (
     <main className='d-flex flex-column' style={{
       height: '100%',
       width: '100%'
     }}>
-      <SignUpFields />
+      <LoginFields />
     </main>
   );
 }
 
-export default MainMenu;
+export default LoginMenu;

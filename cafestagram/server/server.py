@@ -70,10 +70,32 @@ class signup_form(BaseModel):
     phoneNumber: str
     password: str
 
+class login_form(BaseModel):
+    username: str
+    password: str
+
 
 @app.get("/")
 def root():
     return {"message": "Server is running!"}
+
+@app.post("/api/login")
+def login(data: login_form):
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT * FROM users WHERE username=%s AND password=%s",
+                (data.username, data.password)
+            )
+            user = cur.fetchone()
+
+        if not user:
+            return {"message": "Username or password is incorrect!"}
+
+        return {"message": "Login successful!"}
+    finally:
+        conn.close()
 
 @app.post("/api/signup")
 def signup(data: signup_form):
