@@ -1,7 +1,10 @@
 import { useState } from "react";
 import "./signUp.css";
+import { useNavigate } from "react-router-dom";
+
 
 function LoginFields() {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -25,6 +28,9 @@ function LoginFields() {
   });
   const data = await res.json();
   console.log(data.message);
+  if (data.status === "success"){
+    navigate('/main')
+  }
   };
 
   return (

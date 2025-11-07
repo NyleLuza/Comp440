@@ -97,9 +97,11 @@ def login(data: login_form):
         # if user found, we want to check the password hash
         pw_hash = user['password']
         if bcrypt.checkpw(data.password.encode("utf-8"), pw_hash.encode("utf-8")):
-            return {"message": "Login successful!"}
+            return {"message": "Login successful!",
+                        "status": "success"}
         else:
-            return {"message": "Login unsuccessful, wrong password!"}
+            return {"message": "Login unsuccessful, wrong password!",
+                        "status": "failed"}
     finally:
         conn.close()
 
@@ -117,7 +119,7 @@ def signup(data: signup_form):
             else:
                 cur.execute("INSERT INTO users (firstName, lastName, username, email, phoneNumber, password) VALUES (%s, %s, %s, %s, %s, %s)", (data.firstName, data.lastName, data.username, data.email, data.phoneNumber, pw_hash))
                 conn.commit()   # Always commit for schema changes
-                return {"message": f"{data.username} created!"}
+                return {"message": f"{data.email} created!"}
     finally:
         conn.close()
     
