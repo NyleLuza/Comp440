@@ -113,7 +113,7 @@ def signup(data: signup_form):
             cur.execute("SELECT * from users where username = %s or email = %s or phoneNumber = %s", (data.username, data.email, data.phoneNumber))
             user = cur.fetchone()
             if user:
-                return {"message": f"{data.username} already exists!"}
+                return {"message": f"{data.email} already exists!"}
             else:
                 cur.execute("INSERT INTO users (firstName, lastName, username, email, phoneNumber, password) VALUES (%s, %s, %s, %s, %s, %s)", (data.firstName, data.lastName, data.username, data.email, data.phoneNumber, pw_hash))
                 conn.commit()   # Always commit for schema changes
