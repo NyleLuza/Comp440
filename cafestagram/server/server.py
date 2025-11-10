@@ -48,9 +48,20 @@ async def lifespan(app: FastAPI):
             password VARCHAR(255)
         )
         """)
+        # create posts table
+        cur.execute("""
+                    CREATE TABLE IF NOT EXISTS posts (
+                        postID INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(255),
+                        location VARCHAR(255),
+                        imageURL VARCHAR(255),
+                        description TEXT,
+                        likesCount INT,
+                        date VARCHAR(50)
+                    );
+                    """)
     conn.commit()
     conn.close()
-
     yield
 
 # api endpoints
@@ -74,11 +85,20 @@ class login_form(BaseModel):
     username: str
     password: str
 
+class post_form(BaseModel):
+    username: str
+    location: str
+    imageURL: str
+    description: str
+    likesCount: int
+    date: str
 
+# route checks if server running
 @app.get("/")
 def root():
     return {"message": "Server is running!"}
 
+# login route
 @app.post("/api/login")
 def login(data: login_form):
     conn = get_conn()
@@ -98,13 +118,15 @@ def login(data: login_form):
         pw_hash = user['password']
         if bcrypt.checkpw(data.password.encode("utf-8"), pw_hash.encode("utf-8")):
             return {"message": "Login successful!",
-                        "status": "success"}
+                        "status": "success","username": data.username}
         else:
             return {"message": "Login unsuccessful, wrong password!",
-                        "status": "failed"}
+                        "status": "failed"
+                        }
     finally:
         conn.close()
 
+# signup route
 @app.post("/api/signup")
 def signup(data: signup_form):
     conn = get_conn()
@@ -122,5 +144,17 @@ def signup(data: signup_form):
                 return {"message": f"{data.email} created!"}
     finally:
         conn.close()
+
+@app.post("/api/post")
+def post(data: post_form):
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO posts(username, location, imageURL, description, likesCount, date) VALUES (%s, %s, %s, %s, %s, %s)", (data.username, data.location, data.imageURL, data.description, data.likesCount, data.date))
+            conn.commit()
+            return{'message': "Post Created!"}
+    finally:
+        conn.close()
+    
     
   

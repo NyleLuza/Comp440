@@ -2,9 +2,8 @@ import { useState } from "react";
 import "./signUp.css";
 import { useNavigate } from "react-router-dom";
 
-
 function LoginFields() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -18,20 +17,20 @@ function LoginFields() {
     }));
   };
 
-  async function handleSubmit(e){
+  async function handleSubmit(e) {
     e.preventDefault();
     console.log("Form submitted:", formData);
     const res = await fetch("http://localhost:8000/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
-  const data = await res.json();
-  console.log(data.message);
-  if (data.status === "success"){
-    navigate('/main')
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    console.log(data.message);
+    if (data.status === "success") {
+      navigate(`/main/${data.username}`);
+    }
   }
-  };
 
   return (
     <section className="d-flex flex-column flex-grow-1 sign-up-section">
@@ -42,7 +41,7 @@ function LoginFields() {
         style={{ height: "50vh" }}
         method="post"
         onSubmit={handleSubmit}
-        >
+      >
         <div className="signUp">
           <label htmlFor="username">Username:</label>
           <input
