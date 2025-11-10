@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 import os
 import bcrypt
 from contextlib import asynccontextmanager
+from datetime import datetime
+
 
 
 load_dotenv()
@@ -60,6 +62,17 @@ async def lifespan(app: FastAPI):
                         date VARCHAR(50)
                     );
                     """)
+        
+        cur.execute("""
+                    CREATE TABLE IF NOT EXISTS comments (
+                        commentID INT AUTO_INCREMENT PRIMARY KEY,
+                        postID INT NOT NULL,
+                        username VARCHAR(255) NOT NULL,
+                        date VARCHAR(50) NOT NULL,
+                        comment TEXT NOT NULL,
+                        FOREIGN KEY (postID) REFERENCES posts(postID) ON DELETE CASCADE
+                    );
+                    """)
     conn.commit()
     conn.close()
     yield
@@ -93,10 +106,29 @@ class post_form(BaseModel):
     likesCount: int
     date: str
 
+class comment_form(BaseModel):
+    postID: int
+    username: str
+    comment: str
+    date: str
+
 # route checks if server running
 @app.get("/")
 def root():
     return {"message": "Server is running!"}
+
+@app.get("/api/post")
+def postsFeed():
+    conn = get_conn()
+    try: 
+        with conn.cursor() as cur:
+            cur.execute("SELECT * From posts")
+            posts = cur.fetchall()
+            print(posts)
+            return {'posts': posts}
+    finally:
+        conn.close()
+    
 
 # login route
 @app.post("/api/login")
@@ -148,13 +180,48 @@ def signup(data: signup_form):
 @app.post("/api/post")
 def post(data: post_form):
     conn = get_conn()
+    today = datetime.now().strftime("%#m/%#d/%Y")
+    print(today)
     try:
         with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) from posts WHERE username= %s and date= %s", (data.username, today))
+            num_posts = cur.fetchone()
+            # print(num_posts['COUNT(*)'])
+            if num_posts['COUNT(*)'] >= 2:
+                return {'message': "Maximum number of posts for Today!"}
+            
             cur.execute("INSERT INTO posts(username, location, imageURL, description, likesCount, date) VALUES (%s, %s, %s, %s, %s, %s)", (data.username, data.location, data.imageURL, data.description, data.likesCount, data.date))
             conn.commit()
             return{'message': "Post Created!"}
     finally:
         conn.close()
-    
+
+@app.post("/api/post/{postID}/comments")
+def add_comment(postID: int, data: comment_form):
+    conn = get_conn()
+    today = datetime.now().strftime("%#m/%#d/%Y")
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM comments WHERE postID=%s and date=%s", (postID, today))
+            count = cur.fetchone()['COUNT(*)']
+            if count >= 3:
+                return {'message': "Max number of comments reach today"}
+            cur.execute("INSERT INTO comments(postID, username, comment, date) VALUES(%s, %s, %s, %s)", (postID, data.username, data.comment ,today))
+            conn.commit()
+            return{'message':"comment made!"}
+    finally:
+        conn.close()
+
+@app.get("/api/post/{postID}/comments")
+def get_comments(postID: int):
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM comments WHERE postID = %s", (postID,))
+            comments = cur.fetchall()
+            return {"comments": comments}
+    finally:
+        conn.close()
+
     
   
