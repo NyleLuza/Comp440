@@ -18,8 +18,10 @@ npm install
 
 # --- Run backend ---
 
-uvicorn main:app --reload
+uvicorn server:app --reload
 
 # --- Run frontend ---
 
 npm start
+
+Step by Step Instructions:

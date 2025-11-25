@@ -2,6 +2,7 @@ import { useState } from "react";
 import Post from "../components/Post.js";
 import MainFeed from "../components/MainFeed.js";
 import { useParams } from "react-router-dom";
+
 function MainMenu() {
   const { username } = useParams();
   const [showPost, setShowPost] = useState(false);
