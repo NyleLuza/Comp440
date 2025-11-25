@@ -9,21 +9,6 @@ Versions:
 Python 3.9+
 Node.js (v16+)
 
-Installation:
-
-# --- Install dependencies ---
-
-pip install fastapi uvicorn pymysql
-npm install
-
-# --- Run backend ---
-
-uvicorn server:app --reload
-
-# --- Run frontend ---
-
-npm start
-
 # Step by Step Instructions for environment setup:
 
 Step 1: Download Docker to setup environment:
