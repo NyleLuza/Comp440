@@ -119,13 +119,18 @@ def root():
 
 @app.get("/api/post")
 def postsFeed():
+    today = datetime.now().strftime("%#m/%#d/%Y")
     conn = get_conn()
+    current_posts = []
     try: 
         with conn.cursor() as cur:
             cur.execute("SELECT * From posts")
             posts = cur.fetchall()
-            print(posts)
-            return {'posts': posts}
+            for post in posts:
+                if post["date"] == today:
+                    current_posts.append(post)
+            return {'posts': current_posts,
+                    'status': "working"}
     finally:
         conn.close()
     
