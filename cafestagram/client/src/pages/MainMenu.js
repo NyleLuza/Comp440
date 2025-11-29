@@ -2,10 +2,12 @@ import { useState } from "react";
 import Post from "../components/Post.js";
 import MainFeed from "../components/MainFeed.js";
 import { useParams } from "react-router-dom";
+import Profile from "../components/Profile.js";
 
 function MainMenu() {
   const { username } = useParams();
   const [showPost, setShowPost] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   return (
     <main
       className="d-flex flex-column"
@@ -22,7 +24,10 @@ function MainMenu() {
         }}
       >
         <button
-          onClick={() => setShowPost(true)}
+          onClick={() => {
+            setShowPost(true);
+            setShowProfile(false);
+          }}
           className="d-flex justify-content-center"
           style={{
             width: "8%",
@@ -32,6 +37,10 @@ function MainMenu() {
         </button>
         <h2 className="d-flex ">Cafestagram</h2>
         <button
+          onClick={() => {
+            setShowProfile(true);
+            setShowPost(false);
+          }}
           className="d-flex justify-content-center"
           style={{
             width: "8%",
@@ -46,6 +55,11 @@ function MainMenu() {
           classname="d-flex flex-column flex-grow-1"
           postClickedOut={() => setShowPost(false)}
           currentUser={username}
+        />
+      ) : showProfile ? (
+        <Profile
+          className="d-flex flex-column flex-grow-1"
+          postClickedOut={() => setShowProfile(false)}
         />
       ) : (
         <MainFeed />
