@@ -245,6 +245,19 @@ def add_comment(postID: int, data: comment_form):
     finally:
         conn.close()
 
+@app.post("/api/account/{username}")
+def update_profile(username: str, data: account_form):
+    conn = get_conn()
+    print(data)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("INSERT IGNORE INTO accounts(username, biography, profilePic) VALUES(%s, %s, %s)", (username, data.biography, data.profilePic))
+            conn.commit()
+            return{"status": "update working"}
+    finally:
+        conn.close()
+            
+
 # comments get route to show comments on specific post
 @app.get("/api/post/{postID}/comments")
 def get_comments(postID: int):
@@ -267,6 +280,17 @@ def find_users(searchedUser: str):
             accounts = cur.fetchall()
             return {"status": "working well",
                     "users": accounts}
+    finally:
+        conn.close()
+
+@app.get("/api/account/{username}")
+def get_account_info(username: str):
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM accounts where username = %s", (username,))
+            data = cur.fetchone()
+            return {"account": data, "status": "working"}
     finally:
         conn.close()
 
