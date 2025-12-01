@@ -19,17 +19,17 @@ function SignUpFields() {
     }));
   };
 
-  async function handleSubmit(e){
+  async function handleSubmit(e) {
     e.preventDefault();
     console.log("Form submitted:", formData);
     const res = await fetch("http://localhost:8000/api/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
-  });
-  const data = await res.json();
-  console.log(data.message);
-  };
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    console.log(data.message);
+  }
 
   return (
     <section className="d-flex flex-column flex-grow-1 sign-up-section">

@@ -143,20 +143,32 @@ class account_form(BaseModel):
 def root():
     return {"message": "Server is running!"}
 
-@app.get("/api/post")
-def postsFeed():
+@app.get("/api/post/{username}")
+def postsFeed(username: str):
     today = datetime.now().strftime("%#m/%#d/%Y")
     conn = get_conn()
     current_posts = []
     try: 
         with conn.cursor() as cur:
+            """
             cur.execute("SELECT * From posts")
             posts = cur.fetchall()
-            for post in posts:
-                if post["date"] == today:
-                    current_posts.append(post)
-            return {'posts': current_posts,
-                    'status': "working"}
+            """
+            cur.execute("""
+            SELECT p.*
+            FROM posts p
+            JOIN follows f 
+              ON p.username = f.followingUsername
+            WHERE f.followerUsername = %s
+            ORDER BY p.date DESC
+        """, (username,))
+
+        posts = cur.fetchall()
+        for post in posts:
+            if post["date"] == today:
+                current_posts.append(post)
+        return {'posts': current_posts,
+                'status': "working"}
     finally:
         conn.close()
     
@@ -203,6 +215,8 @@ def signup(data: signup_form):
                 return {"message": f"{data.email} already exists!"}
             else:
                 cur.execute("INSERT INTO users (firstName, lastName, username, email, phoneNumber, password) VALUES (%s, %s, %s, %s, %s, %s)", (data.firstName, data.lastName, data.username, data.email, data.phoneNumber, pw_hash))
+                cur.execute("INSERT INTO accounts (username, biography, profilePic) VALUES (%s, %s, %s)",
+                    (data.username, " ", " "))
                 conn.commit()   # Always commit for schema changes
                 return {"message": f"{data.email} created!"}
     finally:
@@ -251,12 +265,47 @@ def update_profile(username: str, data: account_form):
     print(data)
     try:
         with conn.cursor() as cur:
-            cur.execute("INSERT IGNORE INTO accounts(username, biography, profilePic) VALUES(%s, %s, %s)", (username, data.biography, data.profilePic))
+            # Check if account exists
+            cur.execute("SELECT * FROM accounts WHERE username = %s", (username,))
+            result = cur.fetchone()
+
+            if result:
+                # Account exists → update it
+                cur.execute(
+                    "UPDATE accounts SET biography = %s, profilePic = %s WHERE username = %s",
+                    (data.biography, data.profilePic, username)
+                )
+            else:
+                # Account does not exist → create new one
+                cur.execute(
+                    "INSERT INTO accounts (username, biography, profilePic) VALUES (%s, %s, %s)",
+                    (username, "", "")
+                )
             conn.commit()
             return{"status": "update working"}
     finally:
         conn.close()
-            
+    
+@app.post("/api/account/follow/{follower_username}/{following_username}")
+def follow(follower_username: str, following_username: str):
+    conn = get_conn()
+     # Prevent someone from following themselves
+    if follower_username == following_username:
+        return {"status": "error", "message": "You cannot follow yourself."}
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT IGNORE INTO follows (followerUsername, followingUsername)
+                VALUES (%s, %s)
+            """, (follower_username, following_username))
+
+        conn.commit()
+
+        return {"status": "success", "message": "Followed"}
+    
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 # comments get route to show comments on specific post
 @app.get("/api/post/{postID}/comments")
@@ -290,7 +339,7 @@ def get_account_info(username: str):
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM accounts where username = %s", (username,))
             data = cur.fetchone()
-            return {"username": data[0], "profilePic": data[1], "biography":data[2]}
+            return {"account": data}
     finally:
         conn.close()
 

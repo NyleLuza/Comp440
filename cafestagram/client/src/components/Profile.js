@@ -2,13 +2,20 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import SearchBar from "./SearchBar";
 import EditProfile from "./EditProfile";
+import FollowButton from "./FollowButton";
 
 function Profile() {
   const { username } = useParams();
-  const [data, setData] = useState();
-  const [accountData, setAccountData] = useState();
+  const [accountList, setAccountList] = useState([]);
+  const [accountData, setAccountData] = useState({});
   const [clicked, setClick] = useState(false);
   const [openEdit, setEdit] = useState(false);
+
+  const handleAccountClick = (account) => {
+    setAccountData(account);
+    console.log("Clicked:", account);
+    // You can navigate, open a profile, etc.
+  };
 
   const handleSearch = async (searchTerm) => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
@@ -18,9 +25,9 @@ function Profile() {
       );
       if (!response.ok) throw new Error("Network response was not ok");
       const accounts = await response.json();
-      setData(accounts.users);
+      setAccountList(accounts.users);
       console.log("accounts worked", accounts.status);
-      console.log(data);
+      console.log(accounts);
     } catch (err) {
       console.log(err);
     }
@@ -33,7 +40,8 @@ function Profile() {
         );
         if (!response.ok) throw new Error("Network response was not ok");
         const data = await response.json();
-        setAccountData(data);
+        console.log(data.account);
+        setAccountData(data.account);
       } catch (err) {
         console.error("Error fetching posts:", err);
       }
@@ -46,16 +54,41 @@ function Profile() {
       <div>
         <div>
           <SearchBar onSearch={handleSearch} />
-          {clicked ? (
-            <ul>
-              {data.map((item) => (
-                <li key={item.id}>{item.username}</li>
-              ))}
-            </ul>
-          ) : (
-            <p></p>
-          )}
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {accountList.map((acc) => (
+              <li
+                key={acc.id}
+                style={{
+                  padding: "8px",
+                  borderBottom: "1px solid #eee",
+                }}
+              >
+                <button
+                  onClick={() => handleAccountClick(acc)}
+                  style={{
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "10px",
+                    borderRadius: "6px",
+                    border: "1px solid #ddd",
+                    background: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  <strong>{acc.name}</strong>
+                  <div style={{ color: "#666" }}>@{acc.username}</div>
+                </button>
+              </li>
+            ))}
+
+            {accountList.length === 0 && (
+              <div style={{ color: "#888", padding: "8px" }}>
+                No accounts found
+              </div>
+            )}
+          </ul>
         </div>
+        <FollowButton profileUser={accountData} />
         <div>
           <button onClick={() => setEdit(true)}> Edit Profile </button>
           {openEdit ? (
@@ -65,7 +98,9 @@ function Profile() {
             />
           ) : (
             <div>
-              <h2 className="d-flex justify-content-center">{username}</h2>
+              <h2 className="d-flex justify-content-center">
+                {accountData.username}
+              </h2>
               <main className="d-flex flex-grow-1">
                 <div className="d-flex flex-grow-1 flex-column align-items-center">
                   Posts
@@ -80,7 +115,7 @@ function Profile() {
                   <h3>12</h3>
                 </div>
               </main>
-              <p>Biography</p>
+              <p>{accountData.biography}</p>
             </div>
           )}
         </div>

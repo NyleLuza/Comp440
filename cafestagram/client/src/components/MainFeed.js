@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 function MainFeed() {
   const [posts, setPosts] = useState([]);
   const [comments, setComments] = useState([]);
   const [selectedPostID, setSelectedPostID] = useState(null);
+  const username = useParams();
 
   async function handleSubmit(e, postID) {
     e.preventDefault();
@@ -48,7 +50,9 @@ function MainFeed() {
   useEffect(() => {
     async function loadPosts() {
       try {
-        const response = await fetch("http://localhost:8000/api/post");
+        const response = await fetch(
+          `http://localhost:8000/api/post/${username.username}`
+        );
         if (!response.ok) throw new Error("Network response was not ok");
         const data = await response.json();
         setPosts(data.posts);
