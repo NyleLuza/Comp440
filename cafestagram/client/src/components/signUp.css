@@ -19,13 +19,13 @@
 .sign-up-section h1 {
     margin-bottom: 20px;
     font-weight: 600;
-    color: white;
+    color: black;
 }
 
 /* label text */
 .signUp label {
     font-size: 14px;
-    color: white;
+    color: black;
     margin-bottom: 10px;
 }
 
@@ -43,7 +43,7 @@
 .signUp input:focus {
     outline: none;
     border-color: #555;
-    background: white;
+    background: lightgrey;
 }
 
 /* submit button */
@@ -61,5 +61,6 @@
 
 /* hover over button behavior behavior*/
 .signUpButton:hover {
-    background: darkslategrey;
+    background: white;
+    color: black;
 }
