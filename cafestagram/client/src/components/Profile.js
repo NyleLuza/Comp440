@@ -80,7 +80,7 @@ function Profile() {
                   <h3>12</h3>
                 </div>
               </main>
-              <p>{accountData.biography}</p>
+              <p>Biography</p>
             </div>
           )}
         </div>
