@@ -73,6 +73,23 @@ async def lifespan(app: FastAPI):
                         FOREIGN KEY (postID) REFERENCES posts(postID) ON DELETE CASCADE
                     );
                     """)
+        cur.execute("""
+                    CREATE TABLE IF NOT EXISTS follows (
+                        followerUsername VARCHAR(255) NOT NULL,
+                        followingUsername VARCHAR(255) NOT NULL,
+                        PRIMARY KEY(followerUsername, followingUsername),
+                        FOREIGN KEY(followerUsername) REFERENCES users(username),
+                        FOREIGN KEY(followingUsername) REFERENCES users(username)
+                    );
+                    """)
+        cur.execute("""
+                    CREATE TABLE IF NOT EXISTS accounts (
+                        username     VARCHAR(100) PRIMARY KEY,
+                        biography    VARCHAR(300),
+                        profilePic   VARCHAR(255),
+                        FOREIGN KEY (username) REFERENCES users(username)
+                    );
+                    """)
     conn.commit()
     conn.close()
     yield
@@ -112,6 +129,15 @@ class comment_form(BaseModel):
     comment: str
     date: str
 
+class follow_form(BaseModel):
+    followerUsername: int
+    followingUsername: int
+
+class account_form(BaseModel):
+    username: str
+    biography: str
+    profilePic: str
+
 # route checks if server running
 @app.get("/")
 def root():
@@ -119,13 +145,18 @@ def root():
 
 @app.get("/api/post")
 def postsFeed():
+    today = datetime.now().strftime("%#m/%#d/%Y")
     conn = get_conn()
+    current_posts = []
     try: 
         with conn.cursor() as cur:
             cur.execute("SELECT * From posts")
             posts = cur.fetchall()
-            print(posts)
-            return {'posts': posts}
+            for post in posts:
+                if post["date"] == today:
+                    current_posts.append(post)
+            return {'posts': current_posts,
+                    'status': "working"}
     finally:
         conn.close()
     
@@ -177,6 +208,7 @@ def signup(data: signup_form):
     finally:
         conn.close()
 
+# post route
 @app.post("/api/post")
 def post(data: post_form):
     conn = get_conn()
@@ -196,6 +228,7 @@ def post(data: post_form):
     finally:
         conn.close()
 
+# creating comment route
 @app.post("/api/post/{postID}/comments")
 def add_comment(postID: int, data: comment_form):
     conn = get_conn()
@@ -212,6 +245,20 @@ def add_comment(postID: int, data: comment_form):
     finally:
         conn.close()
 
+@app.post("/api/account/{username}")
+def update_profile(username: str, data: account_form):
+    conn = get_conn()
+    print(data)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("INSERT IGNORE INTO accounts(username, biography, profilePic) VALUES(%s, %s, %s)", (username, data.biography, data.profilePic))
+            conn.commit()
+            return{"status": "update working"}
+    finally:
+        conn.close()
+            
+
+# comments get route to show comments on specific post
 @app.get("/api/post/{postID}/comments")
 def get_comments(postID: int):
     conn = get_conn()
@@ -222,6 +269,31 @@ def get_comments(postID: int):
             return {"comments": comments}
     finally:
         conn.close()
+
+@app.get("/api/{username}/search/{searchedUser}")
+def find_users(searchedUser: str):
+    conn = get_conn()
+    search = f"%{searchedUser}%"
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM accounts WHERE username LIKE %s", (search,))
+            accounts = cur.fetchall()
+            return {"status": "working well",
+                    "users": accounts}
+    finally:
+        conn.close()
+
+@app.get("/api/account/{username}")
+def get_account_info(username: str):
+    conn = get_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM accounts where username = %s", (username,))
+            data = cur.fetchone()
+            return {"username": data[0], "profilePic": data[1], "biography":data[2]}
+    finally:
+        conn.close()
+
 
     
   

@@ -1,8 +1,11 @@
+# Youtube Links:
+
 Phase 1: youtube url: https://youtu.be/Ocb-vbmENkk
 Phase 2: https://youtu.be/nCr4DrHcW4I?si=uWzp__uPOPLWzAUX
 (audio is a bit messed up because I was recording at a cafe)
 
-Database:
+# Cloud Database:
+
 Aiven cloud (visualize on mysqlWorkbench)
 
 Versions:

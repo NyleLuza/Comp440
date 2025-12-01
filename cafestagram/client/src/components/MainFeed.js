@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 function MainFeed() {
   const [posts, setPosts] = useState([]);
-  const [showForm, setShowForm] = useState(false);
   const [comments, setComments] = useState([]);
   const [selectedPostID, setSelectedPostID] = useState(null);
 
@@ -25,8 +24,8 @@ function MainFeed() {
   }
   // button was clicked and changes state of comment form
   const toggleForm = (postID) => {
-    setShowForm(!showForm);
-    setSelectedPostID(postID);
+    if (selectedPostID === postID) setSelectedPostID(null);
+    else setSelectedPostID(postID);
   };
 
   useEffect(() => {
@@ -53,6 +52,7 @@ function MainFeed() {
         if (!response.ok) throw new Error("Network response was not ok");
         const data = await response.json();
         setPosts(data.posts);
+        console.log("status: ", data.status);
       } catch (err) {
         console.error("Error fetching posts:", err);
       }
@@ -71,11 +71,11 @@ function MainFeed() {
           <p>{p.description}</p>
           <div>Number of Likes: {p.likesCount}</div>
           <button onClick={() => toggleForm(p.postID)}>
-            {showForm ? "Close Comment" : "Comment"}
+            {selectedPostID === p.postID ? "Close Comment" : "Comment"}
           </button>
-          {showForm && (
+          {selectedPostID === p.postID && (
             <form onSubmit={handleSubmit}>
-              <div>
+              <div id="comment-id-{{ p.postID }}">
                 <input type="hidden" name="postID" value={p.postID} />
                 <input type="hidden" name="username" value={p.username} />
                 <input type="hidden" name="date" value={p.date} />
@@ -89,13 +89,15 @@ function MainFeed() {
             </form>
           )}
           {comments.length > 0 ? (
-            comments.map((c) => (
-              <div key={c.commentID} className="comment">
-                <strong>{c.username}</strong>: {c.comment}
-              </div>
-            ))
+            comments
+              .filter((c) => c.postID === p.postID)
+              .map((c) => (
+                <div key={c.commentID} className="comment">
+                  <strong>{c.username}</strong>: {c.comment}
+                </div>
+              ))
           ) : (
-            <p>No comments yet</p>
+            <p></p>
           )}
         </div>
       ))}
