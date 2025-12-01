@@ -32,8 +32,8 @@ function Profile() {
           `http://localhost:8000/api/account/${username}`
         );
         if (!response.ok) throw new Error("Network response was not ok");
-        const res = await response.json();
-        setAccountData(res.account);
+        const data = await response.json();
+        setAccountData(data);
       } catch (err) {
         console.error("Error fetching posts:", err);
       }

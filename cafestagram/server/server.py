@@ -290,7 +290,7 @@ def get_account_info(username: str):
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM accounts where username = %s", (username,))
             data = cur.fetchone()
-            return {"account": data, "status": "working"}
+            return {"username": data[0], "profilePic": data[1], "biography":data[2]}
     finally:
         conn.close()
 
