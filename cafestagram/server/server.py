@@ -343,6 +343,66 @@ def get_account_info(username: str):
     finally:
         conn.close()
 
+@app.get("/api/account/{username}/followers")
+def get_followers(username: str):
+    conn = get_conn()
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT followerUsername AS username
+            FROM follows
+            WHERE followingUsername = %s
+        """, (username,))
+        followers = cur.fetchall()
+
+    return {"followers": followers}
+
+@app.get("/api/account/{username}/following")
+def get_following(username: str):
+    conn = get_conn()
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT followingUsername AS username
+            FROM follows
+            WHERE followerUsername = %s
+        """, (username,))
+        
+        following = cur.fetchall()
+        print(following)
+    return {"following": following}
+
+@app.get("/api/account/{username}/counts")
+def get_counts(username: str):
+    conn = get_conn()
+    with conn.cursor() as cur:
+        # Followers count
+        cur.execute("""
+            SELECT COUNT(*) 
+            FROM follows 
+            WHERE followingUsername = %s
+        """, (username,))
+        print("ROWS:", cur.fetchone()["COUNT(*)"])
+        followers = cur.fetchone()
+        if followers is None:
+            followers_count = 0
+        else:
+            followers_count = followers["COUNT(*)"]
+        print(followers_count)
+        # Following count
+        cur.execute("""
+            SELECT COUNT(*) 
+            FROM follows 
+            WHERE followerUsername = %s
+        """, (username,))
+        following = cur.fetchone()
+        if following is None:
+            following_count = 0
+        else:
+            following_count = following["COUNT(*)"]
+        print(following_count)
+    return {
+        "followers": followers_count,
+        "following": following_count
+    }
 
     
   

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-export default function FollowButton({ profileUser }) {
+export default function FollowButton({ profileUser, onFollowChange }) {
   const [isFollowing, setIsFollowing] = useState(false);
   const { username } = useParams();
   const handleClick = async () => {
@@ -20,6 +20,7 @@ export default function FollowButton({ profileUser }) {
 
       if (data.status === "success") {
         setIsFollowing((prev) => !prev);
+        onFollowChange();
       } else {
         console.error("Follow error:", data.message);
       }
